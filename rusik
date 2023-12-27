@@ -1,0 +1,80 @@
+#!/usr/bin/python3
+import os
+import sys
+from pprint import pprint
+from normal_print import print, println
+from colorama import Fore
+
+from RSToken import tokenize
+from RSParse import RParser
+from RSEnv import REnvironment
+from RSValues import NumberVal, NullVal, BooleanVal
+from RSRunner import evaluate, eval_program
+from RSError import i_error, c_error
+
+def REPL():
+  repl_parser = RParser()
+  current_version = "0.039"
+  current_version_info = "(омега, полная версия 0.03)"
+
+  env = REnvironment()
+  env.declareVar("истина", BooleanVal(True))
+  env.declareVar("ложь", BooleanVal(False))
+  println(env)
+  println(f"\nРепликатор языка Русик, версия {current_version} {current_version_info}\nВведите `помощь` или `help` для получения справки")
+  while (True):
+    repl_parser.clear()
+    input_src = input(f"{Fore.GREEN}Код{Fore.RESET} >> {Fore.YELLOW}")
+    print(Fore.RESET)
+    if (input_src in ["exit", "quit", "выход", "выйти"]):
+      exit()
+    elif (input_src in ["help", "?", "помощь"]):
+      println("Это помощь по репликатору языка Русик версии {current_version}:")
+      println("  - Введите `помощь` `?`, или `help`, для получения справки")
+      println("  - Введите код для его выполнения")
+    elif (input_src in ["::CLEAN::", "::CLEAR::", "::ОЧИСТ::"]):
+      os.system("clear")
+    else:
+      program = repl_parser.produceAST(input_src)
+      res = eval_program(program, env)
+      println(f"{Fore.WHITE}{res}{Fore.RESET}")
+
+def parse_flags(flags: list):
+  dflags = {"run": "", "file": ""}
+  pos = 0
+  while (flags[pos] != "-f"):
+    if (flags[pos] == "-r"):
+      dflags["run"] = "repl"
+      break
+    else:
+      i_error(f"Flags Error: Unknown flag {flags[pos]}")
+      exit(1)
+
+  if (dflags["run"] == "file"):
+    pos += 1
+    dflags["file"] = flags[pos]
+  return dflags
+
+def main(argc: int, argv: list) -> int:
+  flags: dict = parse_flags(argv[1:])
+  # argv = argv[1:]
+  # argc -= 1
+
+  # assert (argc == 1)
+
+  # with open(argv[0], "r") as fl:
+  #   src = fl.read()
+  # tokens = tokenize(src)
+  # pprint(tokens)
+
+  if (flags["run"] == "repl"):
+    REPL()
+  elif (flags["run"] == "file"):
+    println("Запуск из файла ещё не создан")
+    exit(1)
+
+  return 0
+
+if (__name__ == "__main__"):
+  exit(main(len(sys.argv), sys.argv))
+
