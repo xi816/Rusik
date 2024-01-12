@@ -15,7 +15,7 @@ def createGlobalEnv():
 
   # Функции
   ## Функции со строками
-  env.declareVar("длина", MK_NFN(RSFunction.strLenFn), True)
+  env.declareVar("длина", MK_NFN(RSFunction.lenFn), True)
   env.declareVar("строка", MK_NFN(RSFunction.toStrFn), True)
   env.declareVar("формат", MK_NFN(RSFunction.strFormatFn), True)
   env.declareVar("вывести", MK_NFN(RSFunction.printFn), True)
@@ -34,6 +34,9 @@ def createGlobalEnv():
   env.declareVar("прочитать", MK_NFN(RSFunction.readFileFn), True)
   env.declareVar("написать", MK_NFN(RSFunction.writeFileFn), True)
   env.declareVar("закрыть", MK_NFN(RSFunction.closeFileFn), True)
+  ## Функции с массивами
+  env.declareVar("отдо", MK_NFN(RSFunction.rangeFn), True)
+  env.declareVar("сумма", MK_NFN(RSFunction.sumFn), True)
   ## Функции с любыми типами
   env.declareVar("тип", MK_NFN(RSFunction.typeofFn), True)
 

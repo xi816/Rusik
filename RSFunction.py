@@ -1,5 +1,7 @@
+from functools import reduce
+
 from RSError import i_error, c_error
-from RSValues import NullVal, NumberVal, FloatVal, BooleanVal, StringVal, FileObjectVal
+from RSValues import NullVal, NumberVal, FloatVal, BooleanVal, StringVal, FileObjectVal, ArrayVal
 from rout import base_num, to_base
 
 def peek(fname: str, args: list, types: list) -> int:
@@ -14,9 +16,21 @@ def toStrFn(args: list, scope):
     res.VALUE += str(i.VALUE)
   return res
 
-def strLenFn(args: list, scope):
+def rangeFn(args: list, scope):
+  c_error(len(args) not in [2, 3], f"Функция `отдо` ожидает 2 или 3 аргумента, но дано {len(args)}")
+  if (len(args) == 2):
+    res = ArrayVal(list(range(args[0].VALUE, args[1].VALUE)))
+  elif (len(args) == 3):
+    res = ArrayVal(list(range(args[0].VALUE, args[1].VALUE, args[2].VALUE)))
+  return res
+
+def sumFn(args: list, scope):
+  c_error(len(args) != 1, f"Функция `сумма` ожидает 1 аргумент, но дано {len(args)}")
+  peek("сумма", args, [ArrayVal])
+  return NumberVal(sum(map(lambda a: a.VALUE, args[0].VALUE)))
+
+def lenFn(args: list, scope):
   c_error(len(args) != 1, f"Функция `длина` ожидает 1 аргумент, но дано {len(args)}")
-  peek("длина", args, [StringVal])
   return NumberVal(len(args[0].VALUE))
 
 def toIntFn(args: list, scope):
