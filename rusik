@@ -12,41 +12,51 @@ from RSValues import NumberVal, NullVal, BooleanVal
 from RSRunner import evaluate, eval_program
 from RSError import i_error, c_error
 
-current_version = "0.0517A"
-current_version_info = "(альфа-билд, полная версия 0.0517A)"
+sys.setrecursionlimit(1 << 16)
+current_version = "А1.0.0"
+current_version_info = "(Альфа 1.0.0)"
 
-def REPL() -> None:
-  repl_parser = RParser()
+def REPL(flags: dict) -> None:
+  repl_parser = RParser(flags["lexer"])
+
+  ins_count = 0
+  outs_count = 0
 
   env = createGlobalEnv()
-  println(f"\nРепликатор языка Русик, версия {current_version} {current_version_info}\nВведите `помощь` или `help` для получения справки")
+  println(f"\nРепликатор языка Русик, версия {current_version} {current_version_info}\nВведите `помощь`, `?`, или `help` для получения справки.")
   while (True):
     repl_parser.clear()
-    input_src = input(f"{Fore.GREEN}Код{Fore.RESET} >> {Fore.YELLOW}")
+    input_src = input(f"{Fore.GREEN}Ввод({ins_count}){Fore.RESET} >> {Fore.YELLOW}")
     print(Fore.RESET)
     if (input_src in ["exit", "quit", "выход", "выйти"]):
       exit()
     elif (input_src in ["help", "?", "помощь"]):
-      println("Это помощь по репликатору языка Русик версии {current_version}:")
+      println(f"Это помощь по репликатору языка Русик версии {current_version}:")
       println("  - Введите `помощь`, `?`, или `help`, для получения справки")
       println("  - Введите код для его выполнения")
     elif (input_src in ["::CLEAN::", "::CLEAR::", "::ОЧИСТ::"]):
       os.system("clear")
     else:
-      program = repl_parser.produceAST(input_src)
+      program = repl_parser.produceAST(input_src, flags["debug"]["ast"])
       res = eval_program(program, env)
-      println(f"{Fore.WHITE}{res}{Fore.RESET}")
+      for i in res:
+        print(f"\n{Fore.GREEN}Вывод({ins_count}.{outs_count}){Fore.RESET}: {Fore.WHITE}{i}{Fore.RESET}")
+        outs_count += 1
+      println()
+    ins_count += 1
+    outs_count = 0
 
-def RunProgram(src: str) -> None:
-  program_parser = RParser()
+def RunProgram(src: str, flags: dict, print_res: bool = False) -> None:
+  program_parser = RParser(flags["lexer"])
   env = createGlobalEnv()
 
-  program = program_parser.produceAST(src)
+  program = program_parser.produceAST(src, flags["debug"]["ast"])
   res = eval_program(program, env)
-  println(f"{Fore.WHITE}{res}{Fore.RESET}")
+  if (print_res): println(f"{Fore.WHITE}{res}{Fore.RESET}")
 
 def parse_flags(flags: list):
-  dflags = {"run": "", "file": ""}
+  dflags = {"run": "", "file": "", "debug": {"ast": False}, "lexer": []}
+  lexer_flags = ["var-decl-dash"]
   pos = 0
   while (pos < len(flags)):
     if (flags[pos] == "-r"):
@@ -55,25 +65,31 @@ def parse_flags(flags: list):
     elif (flags[pos] == "-f"):
       dflags["run"] = "file"
       dflags["file"] = flags[pos+1]
+      pos += 2
+    elif (flags[pos] == "-ast"):
+      dflags["debug"]["ast"] = True
+      pos += 1
+    elif (flags[pos][:2] == "-L"):
+      c_error(flags[pos][2:] not in lexer_flags, f"Неизвестный флаг лексера `{flags[pos][2:]}`")
+      dflags["lexer"].append(flags[pos][2:])
       pos += 1
     else:
-      i_error(f"Flags Error: Unknown flag {flags[pos]}")
+      i_error(f"Неизвестный флаг `{flags[pos]}`")
       exit(1)
 
   return dflags
 
 def main(argc: int, argv: list) -> int:
   flags: dict = parse_flags(argv[1:])
-  println(flags)
 
   if (flags["run"] == "repl"):
-    REPL()
+    REPL(flags)
   elif (flags["run"] == "file"):
     with open(flags["file"], "r") as fl:
       src_code = fl.read()
-    RunProgram(src_code)
+    RunProgram(src_code, flags, False)
   else:
-    i_error("No file or repl provided")
+    i_error("Не дан флаг репликатора/файла")
 
   return 0
 

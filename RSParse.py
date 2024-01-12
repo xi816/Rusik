@@ -3,14 +3,15 @@ from RSError import i_error, c_error
 from colorama import Fore
 
 from RSValues import NullVal
-from RSAst import Stmt, Program, Expr, BinaryExpr, NumericLiteral, NullLiteral, Identifier, VarDeclaration, AssignmentExpr, Property, ObjectLiteral
+from RSAst import NodeType, Stmt, Program, Expr, BinaryExpr, NumericLiteral, FloatLiteral, StringLiteral, NullLiteral, Identifier, VarDeclaration, AssignmentExpr, Property, ObjectLiteral, FunctionCallExpr, IfStatement, WhileStatement, MemberExpr, CallExpr, FunctionDef, GenStatement
 from RSToken import TokenType, tokenize
 
 EndOfFile = ("EOF", "Sys")
 
 class RParser:
-  def __init__(self):
+  def __init__(self, lexer_flags):
     self.tokens = []
+    self.lexer_flags = lexer_flags
     self.pos = 0
 
   def clear(self):
@@ -28,7 +29,7 @@ class RParser:
     prev = self.tokens[self.pos]
     self.pos += 1
     if ((not prev) or (prev.TYPE != tp)):
-      println(f"{Fore.RED}PARSE ERROR{Fore.RESET}: {errmsg}")
+      println(f"{Fore.RED}ОШИБКА ПАРСИНГА{Fore.RESET}\nФайл {Fore.RED}{prev.FILENAME}{Fore.RESET}:{Fore.YELLOW}{prev.POS[0]}{Fore.RESET}:{Fore.GREEN}{prev.POS[1]}{Fore.RESET}: {errmsg}")
       exit(1)
     return prev
 
@@ -44,15 +45,27 @@ class RParser:
       return NullLiteral("null")
     elif (tk == TokenType.Number):
       return NumericLiteral(int(self.eat().VALUE))
-    elif (tk == TokenType.Paren_0):        # ( -- Paren_0, ) -- Paren_1
+    elif (tk == TokenType.Float):
+      return FloatLiteral(float(self.eat().VALUE))
+    elif (tk == TokenType.String):
+      return StringLiteral(self.eat().VALUE)
+    elif (tk == TokenType.Paren_0):
       self.eat()
       value = self.parse_expr()
-      self.expect(TokenType.Paren_1, "Unterminated parenthesis expression") # Skip the Paren_0
+      self.expect(TokenType.Paren_1, "Нет закрывающей скобки в выражении")
       return value
     elif (tk == TokenType.EOF):
       return EndOfFile
     else:
-      assert (False), f"Unexpected token {self.at()}"
+      assert (False), f"Не ожидался токен `{self.at()}`"
+
+  def parse_comparison_expr(self) -> Expr:
+    left = self.parse_additive_expr()
+    while (self.at().VALUE == "==" or self.at().VALUE == "<" or self.at().VALUE == ">" or self.at().VALUE == "<=" or self.at().VALUE == ">=" or self.at().VALUE == "!="):
+      op = self.eat().VALUE
+      right = self.parse_additive_expr()
+      left: BinaryExpr = BinaryExpr(left, right, op)
+    return left
 
   def parse_additive_expr(self) -> Expr:
     left = self.parse_multiplicative_expr()
@@ -63,27 +76,130 @@ class RParser:
     return left
 
   def parse_multiplicative_expr(self) -> Expr:
-    left = self.parse_primary_expr()
+    left = self.parse_shift_expr()
     while (self.at().VALUE == "*" or self.at().VALUE == "/" or self.at().VALUE == "%"):
       op = self.eat().VALUE
-      right = self.parse_primary_expr()
+      right = self.parse_call_member_expr()
       left: BinaryExpr = BinaryExpr(left, right, op)
     return left
+
+  def parse_shift_expr(self) -> Expr:
+    left = self.parse_call_member_expr()
+    while (self.at().VALUE == "<<" or self.at().VALUE == ">>" or self.at().VALUE == "~>" or self.at().VALUE == "~~"):
+      op = self.eat().VALUE
+      right = self.parse_call_member_expr()
+      left: BinaryExpr = BinaryExpr(left, right, op)
+    return left
+
+  def parse_call_expr(self, caller: Expr) -> Expr:
+    call_expr = CallExpr(caller, self.parse_args())
+    if (self.at().TYPE == TokenType.Paren_0):
+      self.parse_call_expr(call_expr)
+    return call_expr
+
+  def parse_args(self) -> list:
+    self.expect(TokenType.Paren_0, "Ожидалась открывающая скобка (`(`) в начале списка аргументов")
+    args = [] if (self.at().TYPE == TokenType.Paren_1) else self.parse_arguments_list()
+    self.expect(TokenType.Paren_1, "Ожидалась закрывающая скобка (`)`) в конце списка аргументов")
+    return args
+
+  def parse_arguments_list(self) -> list:
+    args = [self.parse_assignment_expr()]
+    while (self.at().TYPE == TokenType.Comma) and (self.eat()):
+      args.append(self.parse_assignment_expr())
+    return args
+
+  def parse_member_expr(self) -> Expr:
+    map_obj = self.parse_primary_expr()
+    while (self.at().TYPE == TokenType.Dot) or (self.at().TYPE == TokenType.Bracket_0):
+      operator = self.eat()
+      if (operator.TYPE == TokenType.Dot):
+        computed = False
+        m_property = Identifier(self.eat().VALUE)
+        c_error(m_property.kind != NodeType.Identifier, "Cannot use DMU expression when type is not an identifier")
+      else:
+        computed = True
+        m_property = self.parse_expr()
+        self.expect(TokenType.Bracket_1, "No closing bracket (`]`) in DMC expression")
+      map_obj = MemberExpr(map_obj, m_property, computed)
+    return map_obj
+
+  def parse_call_member_expr(self) -> Expr:
+    member = self.parse_member_expr()
+    if (self.at().TYPE == TokenType.Paren_0):
+      return self.parse_call_expr(member)
+    return member
 
   def parse_assignment_expr(self) -> Expr:
     left = self.parse_object_expr()
     if (self.at().TYPE == TokenType.Op_Eq):
       self.eat()
-      value = self.parse_assignment_expr()
+      value = self.parse_stmt()
       return AssignmentExpr(left, value)
+    elif (self.at().TYPE == TokenType.Op_Binary):
+      if (self.at().VALUE == "++" or self.at().VALUE == "--" or self.at().VALUE == "**"):
+        oper = self.at().VALUE
+        self.eat()
+        value = self.parse_stmt()
+        return AssignmentExpr(left, BinaryExpr(left, value, oper[0]))
     return left
+
+  def parse_if_stmt(self):
+    self.eat()
+    self.expect(TokenType.Paren_0, "No opening parenthesis (`(`) at the start of an if-block condition")
+    test_cond = self.parse_expr()
+    self.expect(TokenType.Paren_1, "No closing parenthesis (`)`) at the end of an if-block condition")
+    if_body = self.parse_block()
+    alter = None
+    if (self.at().TYPE == TokenType.Kw_Else):
+      self.eat()
+      if (self.at().TYPE == TokenType.Kw_If):
+        alter = self.parse_if_stmt()
+      else:
+        alter = self.parse_block()
+
+    return IfStatement(if_body, test_cond, alter)
+
+  def parse_fn_stmt(self):
+    self.eat()
+    name = self.eat().VALUE
+    args = self.parse_args()
+    body = self.parse_block()
+    return FunctionDef(name, args, body)
+
+  def parse_while_stmt(self):
+    self.eat()
+    self.expect(TokenType.Paren_0, "No opening parenthesis (`(`) at the start of an while-block loop")
+    test_cond = self.parse_expr()
+    self.expect(TokenType.Paren_1, "No closing parenthesis (`)`) at the end of an while-block loop")
+    while_body = self.parse_block()
+
+    return WhileStatement(while_body, test_cond)
+
+  def parse_gen_stmt(self):
+    self.eat()
+    self.expect(TokenType.Paren_0, "No opening parenthesis (`(`) at the start of an gen-block loop")
+    test_cond = self.parse_expr()
+    self.expect(TokenType.Paren_1, "No closing parenthesis (`)`) at the end of an gen-block loop")
+    gen_body = self.parse_block()
+
+    return GenStatement(gen_body, test_cond)
+
+  def parse_block(self) -> list:
+    self.expect(TokenType.Brace_0, "No opening curly brace (`{`) at the start of a block")
+    body = []
+    while (self.at().TYPE != TokenType.Brace_1):
+      stmt = self.parse_stmt()
+      body.append(stmt)
+    self.expect(TokenType.Brace_1, "No closing curly brace (`}`) at the end of a block")
+    return body
 
   def parse_expr(self) -> Expr:
    return self.parse_assignment_expr()
 
   def parse_object_expr(self) -> Expr:
     if (self.at().TYPE != TokenType.Brace_0):
-      return self.parse_additive_expr()
+      return self.parse_comparison_expr()
     self.eat()
     properties = []
     while (self.at().TYPE != TokenType.Brace_1):
@@ -105,21 +221,42 @@ class RParser:
 
   def parse_var_declaration(self):
     is_const = self.eat().TYPE == TokenType.Kw_Const
-    identifier = self.expect(TokenType.Ident, "Expected identifier after будет | константа").VALUE
-    self.expect(TokenType.Op_Eq, "Expected `=` token in var declaration")
-    declaration = VarDeclaration(identifier, is_const, self.parse_expr())
+    identifier = self.expect(TokenType.Ident, f"Ожидалось название переменной после `{['будет', 'константа'][int(is_const)]}`").VALUE
+    if (self.at().TYPE == TokenType.Op_Eq):
+      self.eat()
+      declaration = VarDeclaration(identifier, is_const, self.parse_stmt())
+    else:
+      declaration = VarDeclaration(identifier, is_const, NullLiteral("null"))
+    # self.expect(TokenType.Op_Eq, "Expected `=` token in var declaration")
     return declaration
 
   def parse_stmt(self) -> Stmt:
     if (self.at().TYPE == TokenType.Kw_Let):
-      return self.parse_var_declaration()
+      result = self.parse_var_declaration()
     elif (self.at().TYPE == TokenType.Kw_Const):
-      return self.parse_var_declaration()
+      result = self.parse_var_declaration()
+    elif (self.at().TYPE == TokenType.Kw_If):
+      result = self.parse_if_stmt()
+    elif (self.at().TYPE == TokenType.Kw_While):
+      result = self.parse_while_stmt()
+    elif (self.at().TYPE == TokenType.Kw_Gen):
+      result = self.parse_gen_stmt()
+    elif (self.at().TYPE == TokenType.Kw_Fn):
+      result = self.parse_fn_stmt()
     else:
-      return (self.parse_expr())
+      result = (self.parse_expr())
+    return result
 
-  def produceAST(self, src: str) -> Program:
-    self.tokens = tokenize(src)
+  def pretty_puts_program(self, program, spaces = 0) -> str:
+    res = "(Program\n"
+    spaces = 2
+    for i in program.body:
+      res += f"{' '*spaces}{i}\n"
+    res += ')'
+    return res
+
+  def produceAST(self, src: str, debug_ast = False) -> Program:
+    self.tokens = tokenize(src, self.lexer_flags)
     program = Program()
 
     while (True):
@@ -129,5 +266,7 @@ class RParser:
       else:
         program.body.append(parsed_stmt)
 
+    if (debug_ast):
+      println(self.pretty_puts_program(program))
     return program
 

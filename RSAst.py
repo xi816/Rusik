@@ -1,30 +1,26 @@
 from enum import Enum, auto
 
-# Types of AST Nodes:
-#  "Program",
-#  "VariableDeclaration",
-#  "AssignmentExpr",
-#  "Property",
-#  "ObjectLiteral",
-#  "NumericLiteral",
-#  "NullLiteral",
-#  "Identifier",
-#  "BinaryExpr"
-
 class NodeType(Enum):
   # Statements
   Program           = auto()
   VariableDeclaration = auto()
+  IfStatement       = auto()
+  WhileStatement    = auto()
+  GenStatement    = auto()
+  FunctionDef       = auto()
 
   # Expressions
   AssignmentExpr    = auto()
   MemberExpr        = auto()
   CallExpr          = auto()
+  FunctionCallExpr  = auto()
 
   # Literals
   Property          = auto()
   ObjectLiteral     = auto()
   NumericLiteral    = auto()
+  FloatLiteral      = auto()
+  StringLiteral     = auto()
   NullLiteral       = auto()
   Identifier        = auto()
   BinaryExpr        = auto()
@@ -69,6 +65,22 @@ class NumericLiteral(Expr):
 
   def __repr__(self):
     return f"(Number {self.value})"
+
+class FloatLiteral(Expr):
+  def __init__(self, value):
+    self.kind: str = NodeType.FloatLiteral
+    self.value: float = value
+
+  def __repr__(self):
+    return f"(Float {self.value})"
+
+class StringLiteral(Expr):
+  def __init__(self, value):
+    self.kind: str = NodeType.StringLiteral
+    self.value: str = value
+
+  def __repr__(self):
+    return f"(String \"{repr(self.value)[1:-1]}\")"
 
 class VarDeclaration(Stmt):
   def __init__(self, identifier, is_constant, def_value):
@@ -132,4 +144,52 @@ class MemberExpr(Expr):
 
   def __repr__(self):
     return f"(MemberExpr {self.map_obj} {self.property_}{' computed'*int(self.computed)})"
+
+class FunctionCallExpr(Expr):
+  def __init__(self, name, args):
+    self.name: str = name
+    self.args: list = args
+
+  def __repr__(self):
+    return f"(FunctionCall {self.name} {self.args})"
+
+class IfStatement(Stmt):
+  def __init__(self, body, test_cond, alternate = None):
+    self.kind = NodeType.IfStatement
+    self.body = body
+    self.test_cond = test_cond
+    self.alternate = alternate
+
+  def __repr__(self):
+    if (self.alternate != None):
+      return f"(IfElse {self.test_cond} {self.body} {self.alternate})"
+    return f"(If {self.test_cond} {self.body})"
+
+class WhileStatement(Stmt):
+  def __init__(self, body, test_cond):
+    self.kind = NodeType.WhileStatement
+    self.body = body
+    self.test_cond = test_cond
+
+  def __repr__(self):
+    return f"(While {self.test_cond} {self.body})"
+
+class GenStatement(Stmt):
+  def __init__(self, body, test_cond):
+    self.kind = NodeType.GenStatement
+    self.body = body
+    self.test_cond = test_cond
+
+  def __repr__(self):
+    return f"(Generator {self.test_cond} {self.body})"
+
+class FunctionDef(Stmt):
+  def __init__(self, name, args, body):
+    self.kind = NodeType.FunctionDef
+    self.name = name
+    self.args = args
+    self.body = body
+
+  def __repr__(self):
+    return f"(Fn {self.name} {self.args} {self.body})"
 
