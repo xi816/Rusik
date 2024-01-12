@@ -23,6 +23,7 @@ class NodeType(Enum):
   StringLiteral     = auto()
   NullLiteral       = auto()
   Identifier        = auto()
+  UnaryExpr         = auto()
   BinaryExpr        = auto()
 
 class Stmt:
@@ -49,6 +50,15 @@ class BinaryExpr(Expr):
 
   def __repr__(self):
     return f"(BinaryExpr {self.op} {self.left} {self.right})"
+
+class UnaryExpr(Expr):
+  def __init__(self, op, node):
+    self.kind: str = NodeType.UnaryExpr
+    self.op = op
+    self.node = node
+
+  def __repr__(self):
+    return f"(UnaryExpr {self.op} {self.node})"
 
 class Identifier(Expr):
   def __init__(self, symbol):

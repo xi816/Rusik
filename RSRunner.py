@@ -3,7 +3,7 @@ import sys
 from math import floor
 
 from RSValues import ValueType, RuntimeVal, NumberVal, StringVal, NullVal, FloatVal, BooleanVal, ObjectVal, NativeFnValue, FnValue, ArrayVal
-from RSAst import NodeType, Stmt, BinaryExpr, Program, VarDeclaration, AssignmentExpr, ObjectLiteral, CallExpr, NullLiteral, IfStatement, WhileStatement, GenStatement
+from RSAst import NodeType, Stmt, BinaryExpr, UnaryExpr, Program, VarDeclaration, AssignmentExpr, ObjectLiteral, CallExpr, NullLiteral, IfStatement, WhileStatement, GenStatement
 from RSError import i_error, c_error
 from RSEnv import REnvironment
 
@@ -19,6 +19,56 @@ def eval_program(program: Program, env: REnvironment) -> RuntimeVal:
   if (not lastEvaluated):
     lastEvaluated.append(NullVal())
   return lastEvaluated
+
+def eval_numeric_unary_expr(hs: NumberVal, op: str):
+  res = 0
+  float_res = False
+  if (op == "-"):
+    res = -hs.VALUE
+  elif (op == "+"):
+    res = abs(hs.VALUE)
+  elif (op == "/"):
+    res = 1 / hs.VALUE
+    float_res = True
+  elif (op == "<"):
+    res = int(hs.VALUE < 0)
+  elif (op == ">"):
+    res = int(hs.VALUE > 0)
+  else:
+    i_error(f"Неизвестная единичная операция `{op}`")
+  if (float_res):
+    return FloatVal(res)
+  return NumberVal(res)
+
+def eval_float_unary_expr(hs: FloatVal, op: str):
+  res = 0
+  float_res = False
+  if (op == "-"):
+    res = -hs.VALUE
+    float_res = True
+  elif (op == "+"):
+    res = abs(hs.VALUE)
+    float_res = True
+  elif (op == "/"):
+    res = 1 / hs.VALUE
+    float_res = True
+  elif (op == "<"):
+    res = int(hs.VALUE < 0)
+  elif (op == ">"):
+    res = int(hs.VALUE > 0)
+  else:
+    i_error(f"Неизвестная единичная операция `{op}`")
+  if (float_res):
+    return FloatVal(res)
+  return NumberVal(res)
+
+def eval_string_unary_expr(hs: NumberVal, op: str):
+  res = 0
+  if (op == "-"):
+    res = hs.VALUE[::-1]
+  else:
+    i_error(f"Неизвестная единичная операция `{op}`")
+  return StringVal(res)
 
 def eval_numeric_binary_expr(lhs: NumberVal, rhs: NumberVal, op: str):
   res = 0
@@ -154,6 +204,16 @@ def eval_numbool_binary_expr(lhs: BooleanVal, rhs: NumberVal, op: str):
     i_error(f"Unexpected yet or unknown binary operator `{op}`")
   return NumberVal(res)
 
+def eval_unary_expr(unop: UnaryExpr, env: REnvironment) -> RuntimeVal:
+  hs = evaluate(unop.node, env)
+  if (hs.TYPE == ValueType.Number):
+    return eval_numeric_unary_expr(hs, unop.op)
+  elif (hs.TYPE == ValueType.Float):
+    return eval_float_unary_expr(hs, unop.op)
+  elif (hs.TYPE == ValueType.String):
+    return eval_string_unary_expr(hs, unop.op)
+  return NullVal()
+
 def eval_binary_expr(binop: BinaryExpr, env: REnvironment) -> RuntimeVal:
   left_hs = evaluate(binop.left, env)
   right_hs = evaluate(binop.right, env)
@@ -288,6 +348,8 @@ def evaluate(astNode: Stmt, env: REnvironment) -> RuntimeVal:
     return NullVal()
   elif (astNode.kind == NodeType.BinaryExpr):
     return eval_binary_expr(astNode, env)
+  elif (astNode.kind == NodeType.UnaryExpr):
+    return eval_unary_expr(astNode, env)
   elif (astNode.kind == NodeType.VariableDeclaration):
     return eval_var_declaration(astNode, env)
   elif (astNode.kind == NodeType.IfStatement):

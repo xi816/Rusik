@@ -1,0 +1,17 @@
+Changelog starts from version A1.0.0.
+
+Version A1.0.0:
+  First alpha version of a language.
+  Added `генератор` keyword for generating lists, but you can't really use lists yet.
+  Added `функция` keyword for making custom functions. Last result being evaluated is gonna return from a function.
+  Added support for else-if blocks (`иначе если`).
+
+Version A1.1.0:
+  Added support for unary expressions `+`, `-`, `/`.
+    - `+int` -- get absolute value of int
+    - `-int` -- negate the int
+    - `/int` -- get the anti-value of int (1/int)
+    - `-str` -- reverse the string
+  Changed `++`, `--`, `**` to `+=`, `-=`, `*=`.
+  Fixed comments bug.
+

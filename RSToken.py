@@ -43,7 +43,7 @@ class Token:
   TYPE: TokenType
   VALUE: str
   POS: tuple
-  FILENAME: str = "[input]"
+  FILENAME: str = "[ввод]"
 
 KEYWORDS: dict = {
   "будет": TokenType.Kw_Let,
@@ -100,7 +100,7 @@ def tokenize(src: str, lexer_flags: list) -> list:
       c_col += 1
     elif (src[pos] == "+"):
       temp_token = TokenType.Op_Binary, "+", c_row, c_col
-      if (src[pos+1] == "+"):
+      if (src[pos+1] == "="):
         pos += 1
         c_col += 1
         temp_token = TokenType.Op_Binary, "++", c_row, c_col
@@ -109,7 +109,7 @@ def tokenize(src: str, lexer_flags: list) -> list:
       c_col += 1
     elif (src[pos] == "-"):
       temp_token = TokenType.Op_Binary, "-", c_row, c_col
-      if (src[pos+1] == "-"):
+      if (src[pos+1] == "="):
         pos += 1
         c_col += 1
         temp_token = TokenType.Op_Binary, "--", c_row, c_col
@@ -118,7 +118,7 @@ def tokenize(src: str, lexer_flags: list) -> list:
       c_col += 1
     elif (src[pos] == "*"):
       temp_token = TokenType.Op_Binary, "*", c_row, c_col
-      if (src[pos+1] == "*"):
+      if (src[pos+1] == "="):
         pos += 1
         c_col += 1
         temp_token = TokenType.Op_Binary, "**", c_row, c_col
@@ -133,11 +133,9 @@ def tokenize(src: str, lexer_flags: list) -> list:
       else:
         pos += 2
         c_col += 2
-        while (src[pos] != "\n"):
+        while (src[pos] not in "\0\r\n"):
           pos += 1
           c_col += 1
-        pos += 1
-        c_col += 1
     elif (src[pos] == "%"):
       tokens.append(to_token(TokenType.Op_Binary, "%", c_row, c_col))
       pos += 1

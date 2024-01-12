@@ -3,7 +3,7 @@ from RSError import i_error, c_error
 from colorama import Fore
 
 from RSValues import NullVal
-from RSAst import NodeType, Stmt, Program, Expr, BinaryExpr, NumericLiteral, FloatLiteral, StringLiteral, NullLiteral, Identifier, VarDeclaration, AssignmentExpr, Property, ObjectLiteral, FunctionCallExpr, IfStatement, WhileStatement, MemberExpr, CallExpr, FunctionDef, GenStatement
+from RSAst import NodeType, Stmt, Program, Expr, BinaryExpr, UnaryExpr, NumericLiteral, FloatLiteral, StringLiteral, NullLiteral, Identifier, VarDeclaration, AssignmentExpr, Property, ObjectLiteral, FunctionCallExpr, IfStatement, WhileStatement, MemberExpr, CallExpr, FunctionDef, GenStatement
 from RSToken import TokenType, tokenize
 
 EndOfFile = ("EOF", "Sys")
@@ -38,7 +38,11 @@ class RParser:
 
   def parse_primary_expr(self) -> Expr:
     tk = self.at().TYPE
-    if (tk == TokenType.Ident):
+    if (tk == TokenType.Op_Binary):
+      val = self.at().VALUE
+      if (val == "+" or val == "-" or val == "/"):
+        return UnaryExpr(self.eat().VALUE, self.parse_stmt())
+    elif (tk == TokenType.Ident):
       return Identifier(self.eat().VALUE)
     elif (tk == TokenType.Null):
       self.eat()
@@ -57,7 +61,7 @@ class RParser:
     elif (tk == TokenType.EOF):
       return EndOfFile
     else:
-      assert (False), f"Не ожидался токен `{self.at()}`"
+      self.expect(None, f"Не ожидался токен `{self.at().TYPE} {self.at().VALUE}`")
 
   def parse_comparison_expr(self) -> Expr:
     left = self.parse_additive_expr()
