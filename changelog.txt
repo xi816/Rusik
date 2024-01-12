@@ -20,3 +20,7 @@ Version A1.2.0:
     - `array+array` -- concatenate arrays.
     - `array-int` -- pop n elements from an array.
 
+Version A1.2.1:
+  Added function `сумма` for finding sum of elements from an array.
+  Added support for arrays in `длина` function.
+
