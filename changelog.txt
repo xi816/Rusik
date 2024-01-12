@@ -8,10 +8,15 @@ Version A1.0.0:
 
 Version A1.1.0:
   Added support for unary expressions `+`, `-`, `/`.
-    - `+int` -- get absolute value of int
-    - `-int` -- negate the int
+    - `+int` -- get absolute value of int.
+    - `-int` -- negate the int.
     - `/int` -- get the anti-value of int (1/int)
-    - `-str` -- reverse the string
+    - `-str` -- reverse the string.
   Changed `++`, `--`, `**` to `+=`, `-=`, `*=`.
   Fixed comments bug.
+
+Version A1.2.0:
+  Added array support and binary expressions for it.
+    - `array+array` -- concatenate arrays.
+    - `array-int` -- pop n elements from an array.
 

@@ -8,7 +8,6 @@ from ischeck import isalpha, isdigit, iswhite
 from RSError import i_error, c_error
 
 class TokenType(Enum):
-  Null          = auto()
   Number        = auto()
   Float         = auto()
   String        = auto()
@@ -53,7 +52,6 @@ KEYWORDS: dict = {
   "пока": TokenType.Kw_While,
   "генератор": TokenType.Kw_Gen,
   "функция": TokenType.Kw_Fn,
-  "ничего": TokenType.Null
 }
 RUS_CAPITAL = "".join(map(chr, list(range(1040, 1046))+[1025]+list(range(1046, 1072))))
 

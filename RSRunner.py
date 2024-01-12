@@ -40,6 +40,22 @@ def eval_numeric_unary_expr(hs: NumberVal, op: str):
     return FloatVal(res)
   return NumberVal(res)
 
+def eval_array_binary_expr(lhs: ArrayVal, rhs: ArrayVal, op: str):
+  res = 0
+  if (op == "+"):
+    res = lhs.VALUE + rhs.VALUE
+  else:
+    i_error(f"Неизвестная единичная операция `{op}`")
+  return ArrayVal(res)
+
+def eval_arnum_binary_expr(lhs: ArrayVal, rhs: ArrayVal, op: str):
+  res = 0
+  if (op == "-"):
+    res = lhs.VALUE[:-rhs.VALUE]
+  else:
+    i_error(f"Неизвестная единичная операция `{op}`")
+  return ArrayVal(res)
+
 def eval_float_unary_expr(hs: FloatVal, op: str):
   res = 0
   float_res = False
@@ -234,6 +250,10 @@ def eval_binary_expr(binop: BinaryExpr, env: REnvironment) -> RuntimeVal:
     return eval_numbool_binary_expr(left_hs, right_hs, binop.op)
   elif (left_hs.TYPE == ValueType.String and right_hs.TYPE == ValueType.String):
     return eval_string_binary_expr(left_hs, right_hs, binop.op)
+  elif (left_hs.TYPE == ValueType.Array and right_hs.TYPE == ValueType.Array):
+    return eval_array_binary_expr(left_hs, right_hs, binop.op)
+  elif (left_hs.TYPE == ValueType.Array and right_hs.TYPE == ValueType.Number):
+    return eval_arnum_binary_expr(left_hs, right_hs, binop.op)
   return NullVal()
 
 def eval_identifier(ident, env: REnvironment) -> RuntimeVal:
@@ -334,6 +354,8 @@ def evaluate(astNode: Stmt, env: REnvironment) -> RuntimeVal:
     return FloatVal(astNode.value)
   elif (astNode.kind == NodeType.StringLiteral):
     return StringVal(astNode.value)
+  elif (astNode.kind == NodeType.ArrayLiteral):
+    return ArrayVal(list(map(lambda x: evaluate(x, env), astNode.args)))
   elif (astNode.kind == NodeType.Identifier):
     return eval_identifier(astNode, env)
   elif (astNode.kind == NodeType.ObjectLiteral):

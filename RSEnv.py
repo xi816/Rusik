@@ -11,6 +11,7 @@ def createGlobalEnv():
   # Булевы значения
   env.declareVar("истина", RSValues.BooleanVal(True), True)
   env.declareVar("ложь", RSValues.BooleanVal(False), True)
+  env.declareVar("ничего", RSValues.NullVal(), True)
 
   # Функции
   ## Функции со строками

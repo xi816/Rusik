@@ -22,6 +22,7 @@ class NodeType(Enum):
   FloatLiteral      = auto()
   StringLiteral     = auto()
   NullLiteral       = auto()
+  ArrayLiteral      = auto()
   Identifier        = auto()
   UnaryExpr         = auto()
   BinaryExpr        = auto()
@@ -75,6 +76,14 @@ class NumericLiteral(Expr):
 
   def __repr__(self):
     return f"(Number {self.value})"
+
+class ArrayLiteral(Expr):
+  def __init__(self, args):
+    self.kind: str = NodeType.ArrayLiteral
+    self.args: int = args
+
+  def __repr__(self):
+    return f"(Array {self.args})"
 
 class FloatLiteral(Expr):
   def __init__(self, value):

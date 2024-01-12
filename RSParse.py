@@ -3,7 +3,7 @@ from RSError import i_error, c_error
 from colorama import Fore
 
 from RSValues import NullVal
-from RSAst import NodeType, Stmt, Program, Expr, BinaryExpr, UnaryExpr, NumericLiteral, FloatLiteral, StringLiteral, NullLiteral, Identifier, VarDeclaration, AssignmentExpr, Property, ObjectLiteral, FunctionCallExpr, IfStatement, WhileStatement, MemberExpr, CallExpr, FunctionDef, GenStatement
+from RSAst import NodeType, Stmt, Program, Expr, BinaryExpr, UnaryExpr, NumericLiteral, FloatLiteral, StringLiteral, NullLiteral, Identifier, VarDeclaration, AssignmentExpr, Property, ObjectLiteral, FunctionCallExpr, IfStatement, WhileStatement, MemberExpr, CallExpr, FunctionDef, GenStatement, ArrayLiteral
 from RSToken import TokenType, tokenize
 
 EndOfFile = ("EOF", "Sys")
@@ -44,15 +44,14 @@ class RParser:
         return UnaryExpr(self.eat().VALUE, self.parse_stmt())
     elif (tk == TokenType.Ident):
       return Identifier(self.eat().VALUE)
-    elif (tk == TokenType.Null):
-      self.eat()
-      return NullLiteral("null")
     elif (tk == TokenType.Number):
       return NumericLiteral(int(self.eat().VALUE))
     elif (tk == TokenType.Float):
       return FloatLiteral(float(self.eat().VALUE))
     elif (tk == TokenType.String):
       return StringLiteral(self.eat().VALUE)
+    elif (tk == TokenType.Bracket_0):
+      return self.parse_array()
     elif (tk == TokenType.Paren_0):
       self.eat()
       value = self.parse_expr()
@@ -62,6 +61,12 @@ class RParser:
       return EndOfFile
     else:
       self.expect(None, f"Не ожидался токен `{self.at().TYPE} {self.at().VALUE}`")
+
+  def parse_array(self) -> Expr:
+    self.expect(TokenType.Bracket_0, "Нет окрывающей квадратной скобки (`[`) в начале массива")
+    args = self.parse_arguments_list(TokenType.Bracket_1)
+    self.expect(TokenType.Bracket_1, "Нет закрывающей квадратной скобки (`]`) в конце массива")
+    return ArrayLiteral(args)
 
   def parse_comparison_expr(self) -> Expr:
     left = self.parse_additive_expr()
@@ -107,9 +112,13 @@ class RParser:
     self.expect(TokenType.Paren_1, "Ожидалась закрывающая скобка (`)`) в конце списка аргументов")
     return args
 
-  def parse_arguments_list(self) -> list:
+  def parse_arguments_list(self, end = None) -> list:
+    if (self.at().TYPE == end):
+      return []
     args = [self.parse_assignment_expr()]
     while (self.at().TYPE == TokenType.Comma) and (self.eat()):
+      if (self.at().TYPE == end):
+        break
       args.append(self.parse_assignment_expr())
     return args
 

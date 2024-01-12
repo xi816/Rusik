@@ -13,8 +13,8 @@ from RSRunner import evaluate, eval_program
 from RSError import i_error, c_error
 
 sys.setrecursionlimit(1 << 16)
-current_version = "А1.1.0"
-current_version_info = "(Альфа, полное -- 0.110)"
+current_version = "А1.2.0"
+current_repl_version = "1.1"
 
 def REPL(flags: dict) -> None:
   repl_parser = RParser(flags["lexer"])
@@ -23,7 +23,7 @@ def REPL(flags: dict) -> None:
   outs_count = 0
 
   env = createGlobalEnv()
-  println(f"\nРепликатор языка Русик, версия {current_version} {current_version_info}\nВведите `помощь`, `?`, или `help` для получения справки.")
+  println(f"\nРепликатор языка Русик {current_version}, Версия Репликатора {current_repl_version}\nВведите `помощь`, `?`, или `help` для получения справки.")
   while (True):
     repl_parser.clear()
     input_src = input(f"{Fore.GREEN}Ввод({ins_count}){Fore.RESET} >> {Fore.YELLOW}")
