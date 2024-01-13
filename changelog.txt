@@ -33,3 +33,11 @@ Version A1.3.1:
   - Base 3: `2120т`.
   - Base 16: `А5Вш`.
 
+Version A1.3.1:
+  Added support for bases 4 and 8.
+  - Base 4: `1033ч`.
+  - Base 8: `7152в`.
+
+Version A1.3.2-A1.3.3:
+  Bugfixes for base converter (`база_числа`).
+

@@ -150,7 +150,7 @@ class RParser:
       value = self.parse_stmt()
       return AssignmentExpr(left, value)
     elif (self.at().TYPE == TokenType.Op_Binary):
-      if (self.at().VALUE == "++" or self.at().VALUE == "--" or self.at().VALUE == "**"):
+      if (self.at().VALUE == "+=" or self.at().VALUE == "-=" or self.at().VALUE == "*="):
         oper = self.at().VALUE
         self.eat()
         value = self.parse_stmt()

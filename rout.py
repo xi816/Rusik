@@ -1,4 +1,4 @@
-base_num = "".join(map(chr, list(range(48, 58)) + list(range(65, 91)) + list(range(97, 123))))
+base_num = "".join(map(chr, list(range(48, 58)) + list(range(1040, 1046))+[1025]+list(range(1046, 1072))+list(range(1072, 1078))+[1105]+list(range(1078, 1104))))
 
 def forreplace(s: str, fr: str, to: str):
   for a,b in zip(fr, to):

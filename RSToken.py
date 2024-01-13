@@ -101,7 +101,7 @@ def tokenize(src: str, lexer_flags: list) -> list:
       if (src[pos+1] == "="):
         pos += 1
         c_col += 1
-        temp_token = TokenType.Op_Binary, "++", c_row, c_col
+        temp_token = TokenType.Op_Binary, "+=", c_row, c_col
       tokens.append(to_token(*temp_token))
       pos += 1
       c_col += 1
@@ -110,7 +110,7 @@ def tokenize(src: str, lexer_flags: list) -> list:
       if (src[pos+1] == "="):
         pos += 1
         c_col += 1
-        temp_token = TokenType.Op_Binary, "--", c_row, c_col
+        temp_token = TokenType.Op_Binary, "-=", c_row, c_col
       tokens.append(to_token(*temp_token))
       pos += 1
       c_col += 1
@@ -119,7 +119,7 @@ def tokenize(src: str, lexer_flags: list) -> list:
       if (src[pos+1] == "="):
         pos += 1
         c_col += 1
-        temp_token = TokenType.Op_Binary, "**", c_row, c_col
+        temp_token = TokenType.Op_Binary, "*=", c_row, c_col
       tokens.append(to_token(*temp_token))
       pos += 1
       c_col += 1
@@ -212,7 +212,7 @@ def tokenize(src: str, lexer_flags: list) -> list:
       c_col += 1
     else:
       if (isdigit(src[pos]) or src[pos] in "АБВГДЕ"):
-        while (src[pos] not in "\0\n" and (isdigit(src[pos]) or src[pos] in ".шбтАБВГДЕ")):
+        while (src[pos] not in "\0\n" and (isdigit(src[pos]) or src[pos] in ".бтчвшАБВГДЕ")):
           buf += src[pos]
           pos += 1
           c_col += 1
@@ -223,6 +223,10 @@ def tokenize(src: str, lexer_flags: list) -> list:
             tokens.append(to_token(TokenType.Number, int(buf[:-1], base=2), c_row, c_col))
           elif (buf[-1] == "т"):
             tokens.append(to_token(TokenType.Number, int(buf[:-1], base=3), c_row, c_col))
+          elif (buf[-1] == "ч"):
+            tokens.append(to_token(TokenType.Number, int(buf[:-1], base=4), c_row, c_col))
+          elif (buf[-1] == "в"):
+            tokens.append(to_token(TokenType.Number, int(buf[:-1], base=8), c_row, c_col))
           else:
             tokens.append(to_token(TokenType.Number, buf, c_row, c_col))
         elif (buf.count(".") == 1):
