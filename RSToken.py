@@ -5,6 +5,7 @@ from enum import Enum, auto
 from dataclasses import dataclass
 
 from ischeck import isalpha, isdigit, iswhite
+from rout import forreplace
 from RSError import i_error, c_error
 
 class TokenType(Enum):
@@ -20,7 +21,6 @@ class TokenType(Enum):
   Colon         = auto()
   Comma         = auto()
   Dot           = auto()
-  Semicolon     = auto()
   Paren_0       = auto()
   Paren_1       = auto()
   Bracket_0     = auto()
@@ -183,7 +183,6 @@ def tokenize(src: str, lexer_flags: list) -> list:
       pos += 1
       c_col += 1
     elif (src[pos] == ";"):
-      tokens.append(to_token(TokenType.Semicolon, ";", c_row, c_col))
       pos += 1
       c_col += 1
     elif (src[pos] == ":"):
@@ -213,14 +212,19 @@ def tokenize(src: str, lexer_flags: list) -> list:
       c_col += 1
     else:
       if (isdigit(src[pos])):
-        while (src[pos] not in "\0\n" and (isdigit(src[pos]) or src[pos] in ".")):
+        while (src[pos] not in "\0\n" and (isdigit(src[pos]) or src[pos] in ".ш")):
           buf += src[pos]
           pos += 1
           c_col += 1
         if (buf.count(".") == 0):
-          tokens.append(to_token(TokenType.Number, buf, c_row, c_col))
+          if (buf[-1] == "ш"):
+            tokens.append(to_token(TokenType.Number, int(forreplace(buf, "АБВГДЕ", "ABCDEF")[:-1], base=16), c_row, c_col))
+          else:
+            tokens.append(to_token(TokenType.Number, buf, c_row, c_col))
         elif (buf.count(".") == 1):
           tokens.append(to_token(TokenType.Float, buf, c_row, c_col))
+        else:
+          i_error("Нельзя использовать дробное число у которого больше чем одна точка")
         buf = ""
       elif (src[pos] == "\""):
         pos += 1

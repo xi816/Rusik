@@ -24,3 +24,6 @@ Version A1.2.1:
   Added function `сумма` for finding sum of elements from an array.
   Added support for arrays in `длина` function.
 
+Version A1.3.0:
+  Added suuport for writing hexadecimal numbers with `NNNNNш`
+
