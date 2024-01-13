@@ -27,3 +27,9 @@ Version A1.2.1:
 Version A1.3.0:
   Added suuport for writing hexadecimal numbers with `NNNNNш`
 
+Version A1.3.1:
+  Added support for bases 2, and 3 (base 16 was added in A1.3.0).
+  - Base 2: `10100б`.
+  - Base 3: `2120т`.
+  - Base 16: `А5Вш`.
+
