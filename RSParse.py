@@ -3,7 +3,7 @@ from RSError import i_error, c_error
 from colorama import Fore
 
 from RSValues import NullVal
-from RSAst import NodeType, Stmt, Program, Expr, BinaryExpr, UnaryExpr, NumericLiteral, FloatLiteral, StringLiteral, NullLiteral, Identifier, VarDeclaration, AssignmentExpr, Property, ObjectLiteral, IfStatement, WhileStatement, MemberExpr, CallExpr, FunctionDef, GenStatement, ArrayLiteral
+from RSAst import NodeType, Stmt, Program, Expr, BinaryExpr, UnaryExpr, NumericLiteral, FloatLiteral, StringLiteral, NullLiteral, Identifier, VarDeclaration, AssignmentExpr, Property, ObjectLiteral, IfStatement, WhileStatement, MemberExpr, CallExpr, FunctionDef, GenStatement, ArrayLiteral, ElementStmt, SetStmt
 from RSToken import TokenType, tokenize
 
 EndOfFile = ("EOF", "Sys")
@@ -68,6 +68,12 @@ class RParser:
     self.expect(TokenType.Bracket_1, "Нет закрывающей квадратной скобки (`]`) в конце массива")
     return ArrayLiteral(args)
 
+  def parse_element_stmt(self):
+    self.eat()
+    ident = self.parse_primary_expr()
+    offset = self.parse_args()
+    return ElementStmt(ident, offset)
+
   def parse_comparison_expr(self) -> Expr:
     left = self.parse_additive_expr()
     while (self.at().VALUE == "==" or self.at().VALUE == "<" or self.at().VALUE == ">" or self.at().VALUE == "<=" or self.at().VALUE == ">=" or self.at().VALUE == "!="):
@@ -119,7 +125,7 @@ class RParser:
     while (self.at().TYPE == TokenType.Comma) and (self.eat()):
       if (self.at().TYPE == end):
         break
-      args.append(self.parse_assignment_expr())
+      args.append(self.parse_stmt())
     return args
 
   def parse_member_expr(self) -> Expr:
@@ -256,6 +262,8 @@ class RParser:
       result = self.parse_gen_stmt()
     elif (self.at().TYPE == TokenType.Kw_Fn):
       result = self.parse_fn_stmt()
+    elif (self.at().TYPE == TokenType.Kw_Element):
+      result = self.parse_element_stmt()
     else:
       result = (self.parse_expr())
     return result

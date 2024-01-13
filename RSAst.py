@@ -6,8 +6,10 @@ class NodeType(Enum):
   VariableDeclaration = auto()
   IfStatement       = auto()
   WhileStatement    = auto()
-  GenStatement    = auto()
+  GenStatement      = auto()
   FunctionDef       = auto()
+  ElementStmt       = auto()
+  SetStmt           = auto()
 
   # Expressions
   AssignmentExpr    = auto()
@@ -202,4 +204,23 @@ class FunctionDef(Stmt):
 
   def __repr__(self):
     return f"(Fn {self.name} {self.args} {self.body})"
+
+class ElementStmt(Stmt):
+  def __init__(self, ident, offset):
+    self.kind = NodeType.ElementStmt
+    self.ident = ident
+    self.offset = offset
+
+  def __repr__(self):
+    return f"(Element {self.ident} {self.offset})"
+
+class SetStmt(Stmt):
+  def __init__(self, value, ident, offset):
+    self.kind = NodeType.SetStmt
+    self.value = value
+    self.ident = ident
+    self.offset = offset
+
+  def __repr__(self):
+    return f"(Set {self.value} -> {self.ident} {self.offset})"
 

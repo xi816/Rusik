@@ -13,7 +13,7 @@ from RSRunner import evaluate, eval_program
 from RSError import i_error, c_error
 
 sys.setrecursionlimit(1 << 16)
-current_version = "А1.3.3"
+current_version = "А1.4.0"
 current_repl_version = "1.1"
 
 def REPL(flags: dict) -> None:

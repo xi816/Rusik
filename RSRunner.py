@@ -319,17 +319,13 @@ def eval_while_stmt(declaration, env: REnvironment) -> RuntimeVal:
         break
   return result
 
-def eval_gen_stmt(declaration, env: REnvironment) -> RuntimeVal:
-  result = []
-  if (evaluate(declaration.test_cond, env).VALUE):
-    while (True):
-      result.append(eval_body(declaration.body, env, False))
-      test = evaluate(declaration.test_cond, env)
-      if (not bool(test.VALUE)):
-        break
-  if (not result):
-    return NullVal()
-  return ArrayVal(result)
+def eval_element_stmt(declaration, env: REnvironment) -> RuntimeVal:
+  result = env.lookupVar(declaration.ident.symbol)
+  offset = list(map(lambda x: evaluate(x, env).VALUE, declaration.offset))
+  for i in offset:
+    c_error(i > len(result.VALUE), f"Значение индекса {i} превосходит длину массива ({len(result.VALUE)})")
+    result = result.VALUE[i]
+  return result
 
 def eval_fn_stmt(declaration, env: REnvironment) -> RuntimeVal:
   result = FnValue(declaration.name, list(map(lambda a: a.symbol, declaration.args)), declaration.body)
@@ -362,6 +358,10 @@ def evaluate(astNode: Stmt, env: REnvironment) -> RuntimeVal:
     return eval_object_expr(astNode, env)
   elif (astNode.kind == NodeType.CallExpr):
     return eval_call_expr(astNode, env)
+  elif (astNode.kind == NodeType.ElementStmt):
+    return eval_element_stmt(astNode, env)
+  elif (astNode.kind == NodeType.SetStmt):
+    return eval_set_stmt(astNode, env)
   elif (astNode.kind == NodeType.FunctionDef):
     return eval_fn_stmt(astNode, env)
   elif (astNode.kind == NodeType.AssignmentExpr):

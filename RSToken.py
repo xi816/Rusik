@@ -35,6 +35,7 @@ class TokenType(Enum):
   Kw_While      = auto()
   Kw_Gen        = auto()
   Kw_Fn         = auto()
+  Kw_Element    = auto()
   EOF           = auto()
 
 @dataclass
@@ -52,6 +53,7 @@ KEYWORDS: dict = {
   "пока": TokenType.Kw_While,
   "генератор": TokenType.Kw_Gen,
   "функция": TokenType.Kw_Fn,
+  "элемент": TokenType.Kw_Element,
 }
 RUS_CAPITAL = "".join(map(chr, list(range(1040, 1046))+[1025]+list(range(1046, 1072))))
 
