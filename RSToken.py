@@ -211,14 +211,18 @@ def tokenize(src: str, lexer_flags: list) -> list:
       pos += 1
       c_col += 1
     else:
-      if (isdigit(src[pos])):
-        while (src[pos] not in "\0\n" and (isdigit(src[pos]) or src[pos] in ".ш")):
+      if (isdigit(src[pos]) or src[pos] in "АБВГДЕ"):
+        while (src[pos] not in "\0\n" and (isdigit(src[pos]) or src[pos] in ".шбтАБВГДЕ")):
           buf += src[pos]
           pos += 1
           c_col += 1
         if (buf.count(".") == 0):
           if (buf[-1] == "ш"):
             tokens.append(to_token(TokenType.Number, int(forreplace(buf, "АБВГДЕ", "ABCDEF")[:-1], base=16), c_row, c_col))
+          elif (buf[-1] == "б"):
+            tokens.append(to_token(TokenType.Number, int(buf[:-1], base=2), c_row, c_col))
+          elif (buf[-1] == "т"):
+            tokens.append(to_token(TokenType.Number, int(buf[:-1], base=3), c_row, c_col))
           else:
             tokens.append(to_token(TokenType.Number, buf, c_row, c_col))
         elif (buf.count(".") == 1):

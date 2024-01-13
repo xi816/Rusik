@@ -3,7 +3,7 @@ from RSError import i_error, c_error
 from colorama import Fore
 
 from RSValues import NullVal
-from RSAst import NodeType, Stmt, Program, Expr, BinaryExpr, UnaryExpr, NumericLiteral, FloatLiteral, StringLiteral, NullLiteral, Identifier, VarDeclaration, AssignmentExpr, Property, ObjectLiteral, FunctionCallExpr, IfStatement, WhileStatement, MemberExpr, CallExpr, FunctionDef, GenStatement, ArrayLiteral
+from RSAst import NodeType, Stmt, Program, Expr, BinaryExpr, UnaryExpr, NumericLiteral, FloatLiteral, StringLiteral, NullLiteral, Identifier, VarDeclaration, AssignmentExpr, Property, ObjectLiteral, IfStatement, WhileStatement, MemberExpr, CallExpr, FunctionDef, GenStatement, ArrayLiteral
 from RSToken import TokenType, tokenize
 
 EndOfFile = ("EOF", "Sys")

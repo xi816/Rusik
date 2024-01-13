@@ -13,7 +13,6 @@ class NodeType(Enum):
   AssignmentExpr    = auto()
   MemberExpr        = auto()
   CallExpr          = auto()
-  FunctionCallExpr  = auto()
 
   # Literals
   Property          = auto()
@@ -163,14 +162,6 @@ class MemberExpr(Expr):
 
   def __repr__(self):
     return f"(MemberExpr {self.map_obj} {self.property_}{' computed'*int(self.computed)})"
-
-class FunctionCallExpr(Expr):
-  def __init__(self, name, args):
-    self.name: str = name
-    self.args: list = args
-
-  def __repr__(self):
-    return f"(FunctionCall {self.name} {self.args})"
 
 class IfStatement(Stmt):
   def __init__(self, body, test_cond, alternate = None):
